@@ -30,30 +30,49 @@
 	  	</div>
 	</div>    
   </body>
+  <div class="modal fade" id="barModal" tabindex="-1" role="dialog" aria-hidden="true">
+	  <div class="modal-dialog" role="document">
+	    <div class="modal-content">
+	      <div class="modal-header">
+	        <h5 class="modal-title" id="barModalLabel"><span id="barName"></span></h5>
+	        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+	          <span aria-hidden="true">&times;</span>
+	        </button>
+	      </div>
+	      <div class="modal-body">
+	        <p><b>Type:</b> <span id="barType"></span></p>
+	        <p><b>Address:</b> <span id="barAddress"></span></p>
+	        <p><b>Open:</b> <span id="barHours"></span></p>
+	        <p><b>Average Wait Time:</b> 14 minutes</p>
+	        <p><b>Wait Time Now:</b> <span style="color:red;">17 minutes</span></p>
+	        <a href="">Report Wait Time</a>
+	      </div>
+	      <div class="modal-footer">
+	        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+	      </div>
+	    </div>
+	  </div>
+	</div>
+	<div class="modal fade" id="reportWaitModal" tabindex="-1" role="dialog" aria-hidden="true">
+	  <div class="modal-dialog" role="document">
+	    <div class="modal-content">
+	      <div class="modal-header">
+	        <h5 class="modal-title" id="barModalLabel">Report Wait For: <span id="reportBarName"></span></h5>
+	        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+	          <span aria-hidden="true">&times;</span>
+	        </button>
+	      </div>
+	      <div class="modal-body text-center">
+			<input type="range" min="0" max="100" value="50" class="slider" id="waitTime">
+			<p id="waitTimeText">50 minutes</p>
+	      </div>
+	      <div class="modal-footer">
+	        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+	      </div>
+	    </div>
+	  </div>
+	</div>
 </html>
-<div class="modal fade" id="barModal" tabindex="-1" role="dialog" aria-hidden="true">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="barModalLabel"><span id="barName"></span></h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <div class="modal-body">
-        <p><b>Type:</b> <span id="barType"></span></p>
-        <p><b>Address:</b> <span id="barAddress"></span></p>
-        <p><b>Open:</b> <span id="barHours"></span></p>
-        <p><b>Average Wait Time:</b> 14 minutes</p>
-        <p><b>Wait Time Now:</b> <span style="color:red;">17 minutes</span></p>
-        <a href="">Report Wait Time</a>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-      </div>
-    </div>
-  </div>
-</div>
 <script th:inline="javascript">
 /*<![CDATA[*/
 
@@ -71,8 +90,12 @@
 	}).addTo(map);
 
   for (i = 0; i < bars.length; i++) {
+  	bars[i].types[0] = bars[i].types[0].replace("_", " ");
+  	var type = bars[i].types[0].substring(0, 1).toUpperCase() + bars[i].types[0].substring(1);
     L.marker([bars[i].geometry.location.lat, bars[i].geometry.location.lng]).addTo(map)
-    .bindPopup('<b>' + bars[i].name + '</b><br> Wait time: <span style="color:red;">+++</span><br> <a href="#" onclick="setBarModal(\'' + bars[i].placeId.toString() + '\');" >View</a>');
+    .bindPopup('<b>' + bars[i].name + '</b><br> Type: ' + type + 
+    	' <br> <a href="#" onclick="setBarModal(\'' + bars[i].placeId.toString() + '\');" >View Details</a><br>' +
+    	 '<a href="#" onclick="reportWait(\'' + bars[i].placeId.toString() + '\');" >Report Wait Time</a>');
   }
   
   function setBarModal(id) {
@@ -84,8 +107,22 @@
     if (bar.openingHours.openNow) {
     	$('#barHours').text('Yes');
     }
+    bar.types[0] = bar.types[0].replace("_", " ");
     $('#barType').text(bar.types[0].substring(0, 1).toUpperCase() + bar.types[0].substring(1));
     $('#barModal').modal();
   }
+  
+  function reportWait(id) {
+  	var bar = bars.find(function (element) {
+		return element.placeId === id;
+  	});
+  	$('#reportBarName').text(bar.name);
+  	$('#reportWaitModal').modal();
+  }
+  
+	$('#waitTime').on('input change', function () {
+	    $('#waitTimeText').text($(this).val() + " minutes");
+	});
+  
 /*]]>*/
 </script>
